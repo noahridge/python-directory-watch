@@ -1,4 +1,4 @@
-from scratch import listen, _mangage_history
+from watch import listen, mangage_history
 import pytest
 from pathlib import Path
 
@@ -24,7 +24,7 @@ def test_manage_history(empty_history_file):
 
     items = set(["fasjhf", "sdfhslfh", "sjdfhsjkdhf", "skjdfhskdjf"])
     
-    with _mangage_history(empty_history_file) as h:
+    with mangage_history(empty_history_file) as h:
 
         h.update(set(items))
     
@@ -35,11 +35,10 @@ def test_manage_history(empty_history_file):
     assert items == updated_hist
 
 def test_manage_history_filled(filled_history_file):
-    """Test _manage_history adds new items and preserves existing"""
 
     items = set(["fasjhf", "sdfhslfh", "sjdfhsjkdhf", "skjdfhskdjf"])
     
-    with _mangage_history(filled_history_file) as h:
+    with mangage_history(filled_history_file) as h:
 
         h.update(set(items))
     
