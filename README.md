@@ -59,5 +59,7 @@ with mangage_history(history_file) as history:
 
 ## Installation
 
+```
 pip install git+https://github.com/noahridge/python-directory-watch.git
+```
 
