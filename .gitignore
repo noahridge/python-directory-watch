@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#Listen history
+*.temp
+
 # C extensions
 *.so
 #MacOS files

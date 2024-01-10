@@ -1,1 +1,3 @@
-__version__ = "0.0.0.0"
+from .watch import listen, mangage_history
+
+__all__ = [listen, mangage_history]
