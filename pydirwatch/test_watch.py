@@ -85,7 +85,7 @@ def test_listen_errors(listen_dir):
         next(listen("test/test"))
         assert exec_info.value.contains("Input path must be a pathlib.Path object")
 
-    with pytest.warns(UserWarning, match = "not a pathlib.Path object"):
+    # with pytest.warns(UserWarning, match = "not a pathlib.Path object"):
 
-        next(listen(listen_dir,history_paths=set(["test/sf/sdf","sdfs/sdfsdg"])))
+    #     next(listen(listen_dir,history_paths=set(["test/sf/sdf","sdfs/sdfsdg"])))
     

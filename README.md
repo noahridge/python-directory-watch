@@ -6,9 +6,9 @@ Designed to allow for processing of files upon creation. Such as reading CSV dat
 
 # Usage
 
-The ```listen``` generator prodvides a mechanism to yeild the path for each new file in the provided directory. New file discover is performed by polling the directory. The generator will block if no new file are found so it should be run in a seperate thread or python process. 
+The ```listen``` generator prodvides a mechanism to yield the path for each new file in the provided directory. New file discovery is performed by polling the directory. The generator will block if no new file(s) are found so it should be run in a seperate thread or python process. 
 
-The ```manage_history``` context manager provides a mechanism to write history file to disk. This is simply a text file containing a newline delimited list of paths which have already been processed. The history manager returns a python set of string paths. Any items added to this set will automatically be written to the file when the python process ends. 
+The ```manage_history``` context manager provides a mechanism to write a history file to disk. This is simply a text file containing a newline delimited list of paths which have already been processed. The history manager returns a python set of string paths. Any items added to this set will automatically be written to the file when the python process ends. 
 
 The ```listen``` generator can be used without persistent history. Each time the generator is started all files matching the pattern will be yielded.
 
@@ -29,18 +29,15 @@ The ```listen``` generator can be used without persistent history. Each time the
             traceback.print_exc()
 ```
 
-By creating a history file and using the ```manage_history``` generator, history can be persisted on the disk. Only files not present in the history will be yielded upon starting the genertor. 
+By creating a history file and using the ```manage_history``` generator, history can be persisted on the disk. Only files not present in the history will be yielded upon starting the generator. A path for the history file should be provided to ```manage_history```. The paths returned from ```manage_history``` are provided as strings, so they must be converted to your desired format before passing to ```listen```. 
 
 ```python
 import traceback
 from pydirwatch import listen, manage_history
 
 history_file  = (Path.cwd().resolve() / Path("~pydirwatch_history.temp"))
-history_file.touch()
 
 with mangage_history(history_file) as history:
-
-    history_paths = set([Path(p).resolve() for p in history])
 
     for new_file_path in listen(Path("test_dir"), history_paths=history_paths, pattern = "*.txt"):
 
