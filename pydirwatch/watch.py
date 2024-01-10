@@ -1,11 +1,25 @@
 from pathlib import Path
 from contextlib import contextmanager
-import warnings
 from typing import Generator
+from os import PathLike
 
 
 @contextmanager
-def mangage_history(history_file: Path):
+def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
+    """Context manager which reads and writes to file with newline delimited strings. 
+    Yeilds a set of the strings contained in the file or an empty set, 
+    any items added to the set will be written to the file when the context manager exits. 
+
+    Parameters
+    ----------
+    history_file : Path
+        Path to history file location
+
+    Yields
+    ------
+    Generator[set[str], None, None]
+        A set containing items from newline delimited file. 
+    """    
     history_file.touch()
 
     try:
@@ -20,13 +34,35 @@ def mangage_history(history_file: Path):
 
 
 def listen(
-    path: Path, *, history_paths=set(), pattern: str = "*", resolve_paths=True
+    path: Path, *, history_paths: set[PathLike]=set(), pattern: str = "*", resolve_paths: bool=True
 ) -> Generator[Path, None, None]:
-    """_summary_
-    path: pathlib.Path object which is the directory to be searched
-    pattern: str unix style glob pattern to filter for paths matching criteria. Corresponds to allowed glob patterns in pathlib.Path.glob() method.
-    Yields:
-    pathlib.Path objects. New files which are found in directory. Infinite blocking generator.
+    """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found. 
+
+    Parameters
+    ----------
+    path : Path
+        The directory which should be watched for new files. 
+    history_paths : set[PathLike], optional
+        set of path objects which should be ignored (usually because they were already processed) , by default set()
+    pattern : str, optional
+        Unix glob patterns to filter new paths found. Conforms to patterns allowed in pathlib.Path.glob. , by default "*"
+    resolve_paths : bool, optional
+        All paths found will be resolved to absolute using pathlib.Path.resolve, by default True
+
+    Yields
+    ------
+    Generator[Path, None, None]
+        Will yield paths to new files in the directory. Blocks until new file is found.
+
+    Raises
+    ------
+    ValueError
+        Check that path parameter is valid directory & pathlib.Path object
+    ValueError
+        Check that history_paths is valid python set
+    ValueError
+        Check that pattern is a string.
+
     """
     if not isinstance(pattern, str):
         raise ValueError("Input pattern must be a str object. ")
