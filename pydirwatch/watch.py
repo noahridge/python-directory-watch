@@ -18,10 +18,10 @@ def mangage_history(history_file: Path):
 
 def listen(path: Path, *, history_paths=set(), pattern: str = "*") -> Path:
     """_summary_
-    path: pathlib Path object which is the directory to be searched
-    pattern: unix style glob pattern to filter for paths matching criteria. Corresponds to allowed glob patterns in pathlib.Path.glob() method.
+    path: pathlib.Path object which is the directory to be searched
+    pattern: str unix style glob pattern to filter for paths matching criteria. Corresponds to allowed glob patterns in pathlib.Path.glob() method.
     Yields:
-    pathlib.Path object
+    pathlib.Path objects. New files which are found in directory. Infinite blocking generator. 
     """
     if not isinstance(pattern, str):
         raise ValueError("Input pattern must be a str object. ")
@@ -42,6 +42,12 @@ def listen(path: Path, *, history_paths=set(), pattern: str = "*") -> Path:
             warnings.warn(
                 f"The path `{hist_path}` in the provided history_paths set is not a pathlib.Path object. All paths will be considered new due to type mismatch."
             , UserWarning)
+    
+    yield from _listen(path, history_paths = history_paths, pattern = pattern)
+
+
+
+def _listen(path: Path, *, history_paths=set(), pattern: str = "*"):
 
     while True:
         items = set([p.resolve() for p in path.glob(pattern)])
