@@ -54,25 +54,4 @@ def listen(path: Path, *, history_paths=set(), pattern: str = "*") -> Path:
                 history_paths.add(item)
 
 
-if __name__ == "__main__":
-    import traceback
 
-    history_file = Path.cwd().resolve() / Path("~listen_history.temp")
-    history_file.touch()
-
-    with mangage_history(history_file) as history:
-        history_paths = set([Path(p).resolve() for p in history])
-
-        for new_file in listen(Path("test_dir"), history_paths=history_paths):
-            try:
-                # DO STUFF
-                print(f"{new_file}")
-
-                if new_file.name.startswith("s"):
-                    raise ValueError("kjshdfkjshdkf")
-
-                # ADD to history if sucessful
-                history.add(new_file)
-
-            except Exception:
-                traceback.print_exc()
