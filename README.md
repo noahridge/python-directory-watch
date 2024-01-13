@@ -20,16 +20,29 @@ The ```listen``` generator can be used without persistent history. Each time the
             #DO STUFF with new_file_path
             print(f"{new_file_path}")
             
-            #ADD to history if sucessful
-            history.add(new_file)
-        
         except Exception:
             # For use cases such as writing to database often exceptions 
             # should be handled without raising exceptions and stopping python process.
             traceback.print_exc()
 ```
 
-By creating a history file and using the ```manage_history``` generator, history can be persisted on the disk. Only files not present in the history will be yielded upon starting the generator. A path for the history file should be provided to ```manage_history```. The paths returned from ```manage_history``` are provided as strings, so they must be converted to your desired format before passing to ```listen```. 
+The ```listen``` generator will automatically write persistent history file to disk upon exit of the generator the ```errors``` keyword argument can be used determine the treatment of exceptions within the body of the loop. If an exception occours within the body of the loop, the path yeilded on that iteration will not be written to the history file. 
+
+```python
+ for new_file_path in listen_with_history(Path("test_dir"),  pattern = "*.txt", errors = "raise"):
+
+        try:
+            #DO STUFF with new_file_path
+            print(f"{new_file_path}")
+            
+        
+        except Exception:
+            # For use cases such as writing to database often exceptions 
+            # should be handled without raising exceptions and stopping python process.
+            traceback.print_exc()
+
+```
+If more control over history and exception handling is desired, the ```manage_history``` context manager and ```listen``` generator can be called directly. By creating a history file and using the ```manage_history``` generator, history can be persisted on the disk. Only files not present in the history will be yielded upon starting the generator. A path for the history file should be provided to ```manage_history```. The paths returned from ```manage_history``` are provided as strings, so they must be converted to your desired format before passing to ```listen```. 
 
 ```python
 import traceback

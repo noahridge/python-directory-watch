@@ -2,6 +2,7 @@ from pathlib import Path
 from contextlib import contextmanager
 from typing import Generator
 from os import PathLike
+from traceback import print_exc
 
 
 @contextmanager
@@ -107,3 +108,48 @@ def _listen(
                 yield item
 
                 history_paths.add(item)
+
+
+
+def listen_with_history(path,*, pattern = "*", resolve_paths = True, history_filepath = Path("~pydirwatch_history.tmp"), errors = "raise" ):
+    """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found. 
+    When generator exits it will save history of files read to disk. Restarting the generator with the same history file will 
+    skip any files found in the directory which match those found in the history file. 
+
+    Parameters
+    ----------
+    path : Path
+        The directory which should be watched for new files. 
+    history_paths : set[PathLike], optional
+        set of path objects which should be ignored (usually because they were already processed), by default empty set()
+    pattern : str, optional
+        Unix glob patterns to filter new paths found. Conforms to patterns allowed in pathlib.Path.glob. , by default "*"
+    resolve_paths : bool, optional
+        All paths found will be resolved to absolute using pathlib.Path.resolve, by default True
+    history_filepath : pathlib.Path, optional
+        filepath for the history file to store persistent history of files read on disk. File will be created if it does not exist.
+        , by default Path("~pydirwatch_history.tmp")
+
+    Yields
+    ------
+    Generator[Path, None, None]
+        Will yield paths to new files found in the directory. Blocks until new file is found.
+
+    """
+    with mangage_history(history_filepath) as h:
+
+        for path in listen(path =path, history_paths=h, resolve_paths=resolve_paths, pattern=pattern):
+
+            try:
+                yield path  
+                h.add(path)
+                
+            except:
+                if errors == "suppress":
+                    pass 
+                elif errors == "warn":
+                    print_exc()
+                else: 
+                    raise
+            
+
