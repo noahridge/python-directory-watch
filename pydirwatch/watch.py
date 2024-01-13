@@ -9,6 +9,7 @@ def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
     """Context manager which reads and writes to file with newline delimited strings. 
     Yeilds a set of the strings contained in the file or an empty set, 
     any items added to the set will be written to the file when the context manager exits. 
+    Creates a file if the history_file argument is not an existing filepath.
 
     Parameters
     ----------
@@ -43,7 +44,7 @@ def listen(
     path : Path
         The directory which should be watched for new files. 
     history_paths : set[PathLike], optional
-        set of path objects which should be ignored (usually because they were already processed) , by default set()
+        set of path objects which should be ignored (usually because they were already processed), by default empty set()
     pattern : str, optional
         Unix glob patterns to filter new paths found. Conforms to patterns allowed in pathlib.Path.glob. , by default "*"
     resolve_paths : bool, optional
@@ -52,7 +53,7 @@ def listen(
     Yields
     ------
     Generator[Path, None, None]
-        Will yield paths to new files in the directory. Blocks until new file is found.
+        Will yield paths to new files found in the directory. Blocks until new file is found.
 
     Raises
     ------
