@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from typing import Generator
 from os import PathLike
 from traceback import print_exc
-
+import time
 
 @contextmanager
 def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
@@ -36,7 +36,7 @@ def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
 
 
 def listen(
-    path: Path, *, history_paths: set[PathLike]=set(), pattern: str = "*", resolve_paths: bool=True
+    path: Path, *, history_paths: set[PathLike]=set(), pattern: str = "*", resolve_paths: bool=True, polling_rate = 10
 ) -> Generator[Path, None, None]:
     """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found. 
 
@@ -87,15 +87,16 @@ def listen(
 
     
     yield from _listen(
-        path, history_paths=history_paths_converted, pattern=pattern, resolve_paths=resolve_paths
+        path, history_paths=history_paths_converted, pattern=pattern, resolve_paths=resolve_paths, polling_rate= polling_rate
     )
 
 
 def _listen(
-    path: Path, *, history_paths=set(), pattern: str = "*", resolve_paths=True
+    path: Path, *, history_paths=set(), pattern: str = "*", resolve_paths=True, polling_rate = 10
 ) -> Generator[Path, None, None]:
     
     while True:
+        time.sleep(1/polling_rate)
         if resolve_paths:
             items = set([p.resolve() for p in path.glob(pattern)])
         else:
@@ -111,7 +112,7 @@ def _listen(
 
 
 
-def listen_with_history(path,*, pattern = "*", resolve_paths = True, history_filepath = Path("~pydirwatch_history.tmp"), errors = "raise" ):
+def listen_with_history(path,*, pattern = "*", resolve_paths = True, history_filepath = Path("~pydirwatch_history.tmp"), errors = "raise" , polling_rate = 10):
     """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found. 
     When generator exits it will save history of files read to disk. Restarting the generator with the same history file will 
     skip any files found in the directory which match those found in the history file. 
@@ -138,7 +139,7 @@ def listen_with_history(path,*, pattern = "*", resolve_paths = True, history_fil
     """
     with mangage_history(history_filepath) as h:
 
-        for path in listen(path =path, history_paths=h, resolve_paths=resolve_paths, pattern=pattern):
+        for path in listen(path =path, history_paths=h, resolve_paths=resolve_paths, pattern=pattern, polling_rate= polling_rate):
 
             try:
                 yield path  
