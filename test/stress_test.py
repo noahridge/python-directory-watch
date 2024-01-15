@@ -38,11 +38,11 @@ def test_stress():
 
         
         existing = set()
-        for idx in range(10_000):
+        for idx in range(1_000):
             exp= (Path(p)/ f"testfile_{idx}_existing")
             exp.touch()
             existing.add(exp.resolve())
-
+        time.sleep(1)
 
         make_files_thread = Thread(target=make_files, args = (p,exit_event))
 

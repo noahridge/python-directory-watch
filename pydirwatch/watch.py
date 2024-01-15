@@ -4,6 +4,28 @@ from typing import Generator
 from os import PathLike
 from traceback import print_exc
 import time
+import os
+from dataclasses import dataclass
+
+@dataclass
+class FileInfo:
+    path: Path
+    inode: tuple[int, int]
+    
+    @classmethod
+    def from_path(cls, path: os.PathLike):
+        st = os.stat(path)
+        return cls(Path(path), (st.st_ino, st.st_dev))
+    
+    def __hash__(self):
+        return hash(self.inode)
+    
+    def __eq__(self, __value: object) -> bool:
+        if self.inode == __value.inode:
+            return True
+        else:
+            return (self == __value)
+    
 
 @contextmanager
 def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
@@ -92,23 +114,25 @@ def listen(
 
 
 def _listen(
-    path: Path, *, history_paths=set(), pattern: str = "*", resolve_paths=True, polling_rate = 10
+    path: Path, *, history_paths: set[PathLike] = set(), pattern: str = "*", resolve_paths=True, polling_rate = 10
 ) -> Generator[Path, None, None]:
+    
+    history_info = set([FileInfo.from_path(p) for p in history_paths])
     
     while True:
         time.sleep(1/polling_rate)
         if resolve_paths:
-            items = set([p.resolve() for p in path.glob(pattern)])
+            items = set([FileInfo.from_path((p.resolve())) for p in path.glob(pattern)])
         else:
-            items = set([p for p in path.glob(pattern)])
+            items = set([FileInfo.from_path(p) for p in path.glob(pattern)])
 
-        new_items = items.difference(history_paths)
+        new_items = items.difference(history_info)
 
         if new_items:
             for item in new_items:
-                yield item
+                yield item.path
 
-                history_paths.add(item)
+                history_info.add(item)
 
 
 
