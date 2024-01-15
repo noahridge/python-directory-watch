@@ -4,6 +4,8 @@ A minimal python package with the goal to watch a directory for new files. Allow
 
 Designed to allow for processing of files upon creation. Such as reading CSV data files into a database upon creation. 
 
+*Note this library is experimental and may change without warning.
+
 # Usage
 
 The ```listen``` generator prodvides a mechanism to yield the path for each new file in the provided directory. New file discovery is performed by polling the directory. The generator will block if no new file(s) are found so it should be run in a seperate thread or python process. 
