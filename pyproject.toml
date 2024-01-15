@@ -12,7 +12,7 @@ dynamic = ["version"]
 # version = "0.00.00"
 requires-python = ">= 3.8"
 # optional-dependencies = ["pytest>=7.1"]
-authors = [{name = "Noah Ridge", email = "noah.c.ridge@gmail.com"}]
+authors = [{name = "Noah Ridge", email = "hello@noahcridge.com"}]
 readme = "README.md"
 
 
