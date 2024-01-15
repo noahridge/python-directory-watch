@@ -7,31 +7,32 @@ import time
 import os
 from dataclasses import dataclass
 
+
 @dataclass
 class FileInfo:
     path: Path
     inode: tuple[int, int]
-    
+
     @classmethod
     def from_path(cls, path: os.PathLike):
         st = os.stat(path)
         return cls(Path(path), (st.st_ino, st.st_dev))
-    
+
     def __hash__(self):
         return hash(self.inode)
-    
+
     def __eq__(self, __value: object) -> bool:
         if self.inode == __value.inode:
             return True
         else:
-            return (self == __value)
-    
+            return self == __value
+
 
 @contextmanager
 def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
-    """Context manager which reads and writes to file with newline delimited strings. 
-    Yeilds a set of the strings contained in the file or an empty set, 
-    any items added to the set will be written to the file when the context manager exits. 
+    """Context manager which reads and writes to file with newline delimited strings.
+    Yeilds a set of the strings contained in the file or an empty set,
+    any items added to the set will be written to the file when the context manager exits.
     Creates a file if the history_file argument is not an existing filepath.
 
     Parameters
@@ -42,8 +43,8 @@ def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
     Yields
     ------
     Generator[set[str], None, None]
-        A set containing items from newline delimited file. 
-    """    
+        A set containing items from newline delimited file.
+    """
     history_file.touch()
 
     try:
@@ -58,14 +59,19 @@ def mangage_history(history_file: Path) -> Generator[set[str], None, None]:
 
 
 def listen(
-    path: Path, *, history_paths: set[PathLike]=set(), pattern: str = "*", resolve_paths: bool=True, polling_rate = 10
+    path: Path,
+    *,
+    history_paths: set[PathLike] = set(),
+    pattern: str = "*",
+    resolve_paths: bool = True,
+    polling_rate=10,
 ) -> Generator[Path, None, None]:
-    """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found. 
+    """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found.
 
     Parameters
     ----------
     path : Path
-        The directory which should be watched for new files. 
+        The directory which should be watched for new files.
     history_paths : set[PathLike], optional
         set of path objects which should be ignored (usually because they were already processed), by default empty set()
     pattern : str, optional
@@ -104,23 +110,29 @@ def listen(
 
     history_paths_converted = set()
     for hist_path in history_paths:
-       
         history_paths_converted.add(Path(hist_path))
 
-    
     yield from _listen(
-        path, history_paths=history_paths_converted, pattern=pattern, resolve_paths=resolve_paths, polling_rate= polling_rate
+        path,
+        history_paths=history_paths_converted,
+        pattern=pattern,
+        resolve_paths=resolve_paths,
+        polling_rate=polling_rate,
     )
 
 
 def _listen(
-    path: Path, *, history_paths: set[PathLike] = set(), pattern: str = "*", resolve_paths=True, polling_rate = 10
+    path: Path,
+    *,
+    history_paths: set[PathLike] = set(),
+    pattern: str = "*",
+    resolve_paths=True,
+    polling_rate=10,
 ) -> Generator[Path, None, None]:
-    
     history_info = set([FileInfo.from_path(p) for p in history_paths])
-    
+
     while True:
-        time.sleep(1/polling_rate)
+        time.sleep(1 / polling_rate)
         if resolve_paths:
             items = set([FileInfo.from_path((p.resolve())) for p in path.glob(pattern)])
         else:
@@ -135,16 +147,23 @@ def _listen(
                 history_info.add(item)
 
 
-
-def listen_with_history(path,*, pattern = "*", resolve_paths = True, history_filepath = Path("~pydirwatch_history.tmp"), errors = "raise" , polling_rate = 10):
-    """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found. 
-    When generator exits it will save history of files read to disk. Restarting the generator with the same history file will 
-    skip any files found in the directory which match those found in the history file. 
+def listen_with_history(
+    path,
+    *,
+    pattern="*",
+    resolve_paths=True,
+    history_filepath=Path("~pydirwatch_history.tmp"),
+    errors="raise",
+    polling_rate=10,
+):
+    """Generator which polls for new files in a directory and yeilds when new files are found. Will block unless new file is found.
+    When generator exits it will save history of files read to disk. Restarting the generator with the same history file will
+    skip any files found in the directory which match those found in the history file.
 
     Parameters
     ----------
     path : Path
-        The directory which should be watched for new files. 
+        The directory which should be watched for new files.
     history_paths : set[PathLike], optional
         set of path objects which should be ignored (usually because they were already processed), by default empty set()
     pattern : str, optional
@@ -162,19 +181,21 @@ def listen_with_history(path,*, pattern = "*", resolve_paths = True, history_fil
 
     """
     with mangage_history(history_filepath) as h:
-
-        for path in listen(path =path, history_paths=h, resolve_paths=resolve_paths, pattern=pattern, polling_rate= polling_rate):
-
+        for path in listen(
+            path=path,
+            history_paths=h,
+            resolve_paths=resolve_paths,
+            pattern=pattern,
+            polling_rate=polling_rate,
+        ):
             try:
-                yield path  
+                yield path
                 h.add(path)
-                
+
             except:
                 if errors == "suppress":
-                    pass 
+                    pass
                 elif errors == "warn":
                     print_exc()
-                else: 
+                else:
                     raise
-            
-
